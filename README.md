@@ -1,27 +1,62 @@
-# Coding Test
+# Discount API
 
-Do you want to join the engineering team at [Teamleader](https://www.teamleader.eu/company/engineering)?
+## Project Structure Overview
 
-We have created this exercise in order to gain insights into your development skills.
+This project is organized according to Domain-Driven Design (DDD) principles. Below is an overview of the project structure, highlighting the key components in each layer.
 
-## What to do?
+### 1. Application Layer
 
-We have several problems to solve. Our recruiter would have normally told you which one(s) to solve.
+- **`DiscountAPI/Application/Controller/DiscountController.php`**  
+  Handles HTTP requests and coordinates the application logic related to discounts. It interacts with the domain layer to apply business rules and generate responses.
 
-You are free to use whatever technologies you want, unless instructed otherwise.
+### 2. Domain Layer
 
-- [Problem 1 : Discounts](./1-discounts.md)
-- [Problem 2 : Ordering](./2-ordering.md)
-- [Problem 3 : Local development](./3-local-development.md)
+- **Entities**
+    - **`Customer.php`**: Represents the customer entity in the domain.
+    - **`Discount.php`**: Encapsulates discount details within the domain.
+    - **`DiscountableOrder.php`**: Represents an order eligible for discounts.
+    - **`Order.php`**: Models the concept of an order in the domain.
+    - **`OrderItem.php`**: Represents individual items within an order.
+    - **`Product.php`**: Represents a product in the domain.
 
-## Procedure
+- **Repositories**
+    - **`CustomerRepositoryInterface.php`**: Defines the contract for accessing customer data.
+    - **`ProductRepositoryInterface.php`**: Defines the contract for accessing product data.
 
-We would like you to send us (a link to) a git repository (that we can access).  
+- **Services**
+    - **`CustomerService.php`**: Handles business logic related to customers.
+    - **`ProductService.php`**: Manages business logic related to products.
+    - **`OrderDiscount.php`**: Applies discount logic to orders.
+    - **`DiscountCalculator.php`**: Aggregates multiple discount strategies and calculates the total discount.
+    - **`OrderFactory.php`**: Responsible for creating `Order` entities.
 
-Make sure to add some documentation on how to run your app.
+- **Discount Strategies**
+    - **`CategorySwitchesDiscount.php`**: Implements discount logic for the "switches" category.
+    - **`CategoryToolsDiscount.php`**: Applies discounts to products in the "tools" category.
+    - **`TotalPurchaseDiscount.php`**: Provides discounts based on the total purchase amount.
+    - **`DiscountDecorator.php`**: Used for combining or enhancing discount strategies.
 
-There is no time limit on this exercise, take as long as you need to show us your development skills.
+- **DTOs**
+    - **`DiscountDto.php`**: Handles data transfer related to discounts, ensuring that discount details are consistently represented across different layers.
 
-## Problems?
+- **Factory Interface**
+    - **`DiscountStrategyFactoryInterface.php`**: Defines the contract for creating discount strategies, allowing for flexibility and dynamic configuration of strategies.
 
-Feel free to contact us if something is not clear.
+### 3. Infrastructure Layer
+
+- **Repository Implementations**
+    - **`JsonCustomerRepository.php`**: Implements the `CustomerRepositoryInterface`, providing access to customer data stored in JSON format.
+    - **`JsonProductRepository.php`**: Implements the `ProductRepositoryInterface`, providing access to product data stored in JSON format.
+
+- **Factory Implementation**
+    - **`DiscountStrategyFactory.php`**: Implements the `DiscountStrategyFactoryInterface`, dynamically creating and returning an array of discount strategies based on the current configuration.
+
+## Service Aggregation and Strategy Factory
+
+### 1. Service Aggregation
+
+- The **`DiscountCalculator.php`** class is responsible for aggregating multiple discount strategies. It does so through a strategy factory, ensuring that the `DiscountCalculator` remains decoupled from specific discount strategy implementations. This design allows for the dynamic creation and injection of different discount strategies, depending on the business requirements or configurations.
+
+### 2. Strategy Factory
+
+- The **`DiscountStrategyFactory.php`** in the infrastructure layer implements the `DiscountStrategyFactoryInterface.php`. This factory is designed to dynamically create and return an array of discount strategies. By doing so, it ensures that the `DiscountCalculator` can remain flexible and adaptable to different discount configurations, allowing the system to easily accommodate changes in business rules or the addition of new discount strategies.
