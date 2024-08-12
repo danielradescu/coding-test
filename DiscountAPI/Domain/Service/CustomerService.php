@@ -2,6 +2,7 @@
 
 namespace DiscountAPI\Domain\Service;
 
+use DiscountAPI\Application\Exception\UnprocessableEntityException;
 use DiscountAPI\Domain\Entity\Customer;
 use DiscountAPI\Domain\Repository\CustomerRepositoryInterface;
 use Exception;
@@ -20,15 +21,11 @@ class CustomerService
      */
     public function getCustomerById(string $id): ?Customer
     {
-        try {
-            $customer = $this->customerRepository->findById($id);
-            if ($customer === null) {
-                throw new Exception("Customer with ID $id not found");
-            }
-            return $customer;
-        } catch (Exception $e) {
-            throw new Exception("Failed to retrieve customer: " . $e->getMessage());
+        $customer = $this->customerRepository->findById($id);
+        if ($customer === null) {
+            throw new UnprocessableEntityException("Customer with ID $id not found");
         }
+        return $customer;
     }
 
 }

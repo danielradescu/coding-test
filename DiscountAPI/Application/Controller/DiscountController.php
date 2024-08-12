@@ -2,12 +2,15 @@
 
 namespace DiscountAPI\Application\Controller;
 
+use DiscountAPI\Application\Exception\UnprocessableEntityException;
 use DiscountAPI\Domain\Dto\DiscountDto;
 use DiscountAPI\Domain\Service\DiscountStrategy;
 use DiscountAPI\Domain\Service\OrderDiscount;
 use DiscountAPI\Domain\Service\OrderFactory;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
+use Exception;
+use InvalidArgumentException;
 
 readonly class DiscountController
 {
@@ -21,14 +24,31 @@ readonly class DiscountController
 
     public function create(Request $request, Response $response): Response
     {
-        $orderData = json_decode($request->getBody()->getContents(), true);
+        try {
 
-        $order = $this->orderFactory->createOrder($orderData);
+            $orderData = json_decode($request->getBody()->getContents(), true);
+            if (empty($orderData)) {
+                throw new InvalidArgumentException('Invalid order data provided.');
+            }
 
-        $orderDiscountService = new OrderDiscount($order, $this->discountCalculator);
-        $discount = $orderDiscountService->calculateDiscounts();
+            $order = $this->orderFactory->createOrder($orderData);
 
-        $response->getBody()->write(json_encode(new DiscountDto($discount)));
-        return $response->withHeader('Content-Type', 'application/json');
+            $orderDiscountService = new OrderDiscount($order, $this->discountCalculator);
+            $discount = $orderDiscountService->calculateDiscounts();
+
+            $response->getBody()->write(json_encode(new DiscountDto($discount)));
+            return $response->withHeader('Content-Type', 'application/json');
+
+
+        } catch (UnprocessableEntityException $e) {
+            $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+            return $response->withStatus(422)->withHeader('Content-Type', 'application/json');
+        } catch (InvalidArgumentException $e) {
+            $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        } catch (Exception $e) {
+            $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+            return $response->withStatus(500)->withHeader('Content-Type', 'application/json');
+        }
     }
 }

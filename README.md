@@ -1,3 +1,103 @@
+## Installation and Running Tests
+
+To set up the project and run the tests, follow these steps:
+
+### 1. Build the Project
+
+In the project root directory, run the following command to build the Docker containers:
+```bash
+docker-compose up --build
+```
+This command will build the Docker images and start the services defined in your docker-compose.yml file. If the project is already build run `docker-compose up`.
+### 2. Run the Tests
+
+After the project is built, you can run the tests using the following command:
+
+```bash
+docker-compose run --rm tests
+```
+This command runs the test suite in a temporary Docker container. The --rm flag ensures that the container is automatically removed after the tests have finished running.
+
+## API Endpoint: Calculate Discounts
+
+### Request
+
+**POST** `/discount`
+
+**Body**:
+
+```json
+{
+  "id": "<order-id>",
+  "customer-id": "<customer-id>",
+  "items": [
+    {
+      "product-id": "<product-id>",
+      "quantity": "<quantity>"
+    }
+  ]
+}
+```
+### Response
+A successful response returns details of the calculated discounts:
+```json
+{
+  "total-discount": 114.64,
+  "all-reasons": [
+    "Buy five, get the sixth free for category Switches",
+    "20% discount on the cheapest product when buying two or more Tools",
+    "10% discount for orders over €1000"
+  ],
+  "total-percentage": 23.97,
+  "total-order": 478.18,
+  "detail-discounts": [
+    {
+      "amount": 64.87,
+      "reasons": [
+        "Buy five, get the sixth free for category Switches"
+      ]
+    },
+    {
+      "amount": 1.95,
+      "reasons": [
+        "20% discount on the cheapest product when buying two or more Tools"
+      ]
+    },
+    {
+      "amount": 47.82,
+      "reasons": [
+        "10% discount for orders over €1000"
+      ]
+    }
+  ]
+}
+
+```
+
+
+
+### Example Error Response
+In case of an error, such as missing required fields or invalid input, the API will return an error response with the appropriate HTTP status code.
+
+**Status:** `400 Bad Request`
+
+**Body:**
+
+```json
+{
+  "error": "Customer ID is required."
+}
+```
+
+**Status:** `422 Unprocessable Entity`
+
+**Body:**
+
+```json
+{
+  "error": "Product with ID B1022 not found"
+}
+```
 # Discount API
 
 ## Project Structure Overview

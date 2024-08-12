@@ -2,6 +2,7 @@
 
 namespace DiscountAPI\Domain\Service;
 
+use DiscountAPI\Application\Exception\UnprocessableEntityException;
 use DiscountAPI\Domain\Entity\Product;
 use DiscountAPI\Domain\Repository\ProductRepositoryInterface;
 use Exception;
@@ -17,15 +18,12 @@ readonly class ProductService
      */
     public function getProductById(string $id): ?Product
     {
-        try {
-            $product = $this->productRepository->findById($id);
-            if ($product === null) {
-                throw new Exception("Product with ID $id not found");
-            }
-            return $product;
-        } catch (Exception $e) {
-            throw new Exception("Failed to retrieve product: " . $e->getMessage());
+
+        $product = $this->productRepository->findById($id);
+        if ($product === null) {
+            throw new UnprocessableEntityException("Product with ID $id not found");
         }
+        return $product;
     }
 
 }

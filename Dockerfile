@@ -27,7 +27,7 @@ ENV COMPOSER_ALLOW_SUPERUSER=1
 COPY . /var/www/html
 
 # Install dependencies
-composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist/
+RUN composer install --optimize-autoloader --no-interaction --prefer-dist
 
 # Set permissions for the web server to access the files
 RUN chown -R www-data:www-data /var/www/html

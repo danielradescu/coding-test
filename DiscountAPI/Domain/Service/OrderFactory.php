@@ -17,6 +17,12 @@ class OrderFactory
      */
     public function createOrder(array $orderData): DiscountableOrder
     {
+        if (empty($orderData['customer-id'])) {
+            throw new \InvalidArgumentException('Customer ID is required.');
+        }
+        if (empty($orderData['id'])) {
+            throw new \InvalidArgumentException('Order ID is required.');
+        }
 
         $repositoryProducts = new JsonProductRepository($_ENV['PRODUCTS_JSON_PATH']);
         $productService = new ProductService($repositoryProducts);
@@ -24,12 +30,23 @@ class OrderFactory
         $items = [];
         $total = new Money();
 
+        if (empty($orderData['items'])) {
+            throw new \InvalidArgumentException('Order items are required required.');
+        }
+
         foreach ($orderData['items'] as $orderItemData) {
+            if (empty($orderItemData['product-id'])) {
+                throw new \InvalidArgumentException('Order item product ID is required.');
+            }
             $product = $productService->getProductById($orderItemData['product-id']);
+
+            if (empty($orderItemData['quantity'])) {
+                throw new \InvalidArgumentException('Order item quantity is required for ' . $product->getId());
+            }
             $orderItem = new OrderItem(
                 $product,
                 (int)$orderItemData['quantity'],
-                (float)$orderItemData['unit-price'],
+                $product->getPrice(),
                 new Money($product->getPrice() * $orderItemData['quantity'])
             );
             $items[] = $orderItem;
@@ -39,6 +56,9 @@ class OrderFactory
         $repository = new JsonCustomerRepository($_ENV['CUSTOMERS_JSON_PATH']);
         $customerService = new CustomerService($repository);
         $customer = $customerService->getCustomerById($orderData['customer-id']);
+        if (!$customer) {
+            throw new \InvalidArgumentException('Invalid Customer ID.');
+        }
 
         return new Order(
             $orderData['id'],
